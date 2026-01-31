@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status 
 from product.models import Product, Review, Category
-from .selializers import ProductListSer, ProductDetailSer, CategoryListSer, CategoryDetailSer, ReviewListSer, ReviewDetailtSer
+from .selializers import ProductListSer, ProductDetailSer, CategoryListSer, CategoryDetailSer, ReviewListSer, ReviewDetailtSer, ProductWithReviewsSerializer, ReviewForProductSerializer
 
 
 # GET all
@@ -53,9 +53,25 @@ def review_list_api_view(request):
     )
 
 @api_view(['GET'])
-def review_detail_api_view(request, id):
+def review_detail_api_view(request):
     reviews = Review.objects.get(id=id)
-    data = ReviewDetailtSer(reviews, many=False).data
+    data = ReviewDetailSer(reviews, many=False).data
     return Response(
-        data = data 
+        data=data
     )
+
+@api_view(['GET'])
+def products_with_reviews_api_view(request):
+
+    # Используем prefetch_related для оптимизации запросов
+    products = Product.objects.prefetch_related('reviews').all()
+    
+    # Сериализуем данные
+    serializer = ProductWithReviewsSerializer(products, many=True)
+    
+    return Response(serializer.data)
+
+
+
+
+
